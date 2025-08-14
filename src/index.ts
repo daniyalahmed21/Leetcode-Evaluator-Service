@@ -4,7 +4,8 @@ import apiRouter from "./routes";
 // import sampleQueueProducer from "./producer/sampleQueueProducer";
 // import SampleWorker from "./workers/sampleWorker";
 import bullBoardRouter from "./BullBoard ui/bullBoard";
-import runPython from "./containers/runPythonDocker";
+// import runPython from "./containers/runPythonDocker";
+import runJava from "./containers/runJavaContainer";
 
 const app: Express = express();
 app.use(express.json());
@@ -25,11 +26,32 @@ app.listen(serverConfig.PORT, () => {
   //   location: "Remote",
   // });
 
-  const code = `
-x = 10
-print(x)
-`;
-  const input = "10";
+  //   const code = `
+  // x = 10
+  // print(x)
+  // `;
+  //   const input = "10";
 
-  runPython(code, input);
+  //   runPython(code, input);
+
+  // A simple Java class
+  const javaCode = `
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.IOException;
+
+public class Main {
+    public static void main(String[] args) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        String line = reader.readLine();
+        int number = Integer.parseInt(line);
+        System.out.println("Result: " + (number * 2));
+    }
+}
+`;
+
+  // Input for the Java program
+  const input = "12";
+
+  runJava(javaCode, input);
 });

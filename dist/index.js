@@ -9,7 +9,8 @@ const routes_1 = __importDefault(require("./routes"));
 // import sampleQueueProducer from "./producer/sampleQueueProducer";
 // import SampleWorker from "./workers/sampleWorker";
 const bullBoard_1 = __importDefault(require("./BullBoard ui/bullBoard"));
-const runPythonDocker_1 = __importDefault(require("./containers/runPythonDocker"));
+// import runPython from "./containers/runPythonDocker";
+const runJavaContainer_1 = __importDefault(require("./containers/runJavaContainer"));
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
@@ -25,10 +26,28 @@ app.listen(server_config_1.default.PORT, () => {
     //   position: "SD1",
     //   location: "Remote",
     // });
-    const code = `
-x = 10
-print(x)
+    //   const code = `
+    // x = 10
+    // print(x)
+    // `;
+    //   const input = "10";
+    //   runPython(code, input);
+    // A simple Java class
+    const javaCode = `
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.IOException;
+
+public class Main {
+    public static void main(String[] args) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        String line = reader.readLine();
+        int number = Integer.parseInt(line);
+        System.out.println("Result: " + (number * 2));
+    }
+}
 `;
-    const input = "10";
-    (0, runPythonDocker_1.default)(code, input);
+    // Input for the Java program
+    const input = "12";
+    (0, runJavaContainer_1.default)(javaCode, input);
 });
