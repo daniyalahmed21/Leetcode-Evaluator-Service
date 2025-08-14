@@ -7,7 +7,6 @@ This project is a a TypeScript backend application that uses Express for its web
 * **TypeScript**: The primary programming language used for the project, providing static typing for enhanced code quality and maintainability.
 * **Node.js & Express**: A fast, unopinionated web framework for Node.js, used to build the server and API endpoints.
 
----
 
 ## Key Libraries and Their Purpose
 
@@ -35,7 +34,6 @@ This project is a a TypeScript backend application that uses Express for its web
 * **`@typescript-eslint/eslint-plugin` & `@typescript-eslint/parser`**: These packages enable ESLint to lint TypeScript code effectively.
 * **`eslint-config-prettier` & `eslint-plugin-prettier`**: These are ESLint configurations that integrate Prettier into the ESLint workflow, ensuring there are no conflicts between formatting rules.
 
----
 
 ## Scripts
 
