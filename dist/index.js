@@ -9,8 +9,7 @@ const routes_1 = __importDefault(require("./routes"));
 // import sampleQueueProducer from "./producer/sampleQueueProducer";
 // import SampleWorker from "./workers/sampleWorker";
 const bullBoard_1 = __importDefault(require("./BullBoard ui/bullBoard"));
-// import runPython from "./containers/runPythonDocker";
-const runJavaContainer_1 = __importDefault(require("./containers/runJavaContainer"));
+const runCppdocker_1 = __importDefault(require("./containers/runCppdocker"));
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
@@ -33,21 +32,39 @@ app.listen(server_config_1.default.PORT, () => {
     //   const input = "10";
     //   runPython(code, input);
     // A simple Java class
-    const javaCode = `
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.IOException;
+    //   const javaCode = `
+    // import java.io.BufferedReader;
+    // import java.io.InputStreamReader;
+    // import java.io.IOException;
+    // public class Main {
+    //     public static void main(String[] args) throws IOException {
+    //         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    //         String line = reader.readLine();
+    //         int number = Integer.parseInt(line);
+    //         System.out.println("Result: " + (number * 2));
+    //     }
+    // }
+    // `;
+    //   const input = "12";
+    //   runJava(javaCode, input);
+    // A simple C++ program
+    const cppCode = `
+#include <iostream>
+#include <string>
 
-public class Main {
-    public static void main(String[] args) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        String line = reader.readLine();
-        int number = Integer.parseInt(line);
-        System.out.println("Result: " + (number * 2));
+int main() {
+    std::string line;
+    std::getline(std::cin, line);
+    try {
+        int number = std::stoi(line);
+        std::cout << "Result: " << (number * 2) << std::endl;
+    } catch (const std::invalid_argument& e) {
+        std::cerr << "Invalid input: " << e.what() << std::endl;
     }
+    return 0;
 }
 `;
-    // Input for the Java program
-    const input = "12";
-    (0, runJavaContainer_1.default)(javaCode, input);
+    // Input for the C++ program
+    const input = "10";
+    (0, runCppdocker_1.default)(cppCode, input);
 });

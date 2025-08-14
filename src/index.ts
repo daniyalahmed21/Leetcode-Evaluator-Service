@@ -5,7 +5,8 @@ import apiRouter from "./routes";
 // import SampleWorker from "./workers/sampleWorker";
 import bullBoardRouter from "./BullBoard ui/bullBoard";
 // import runPython from "./containers/runPythonDocker";
-import runJava from "./containers/runJavaContainer";
+import runJava from "./containers/runJavaDocker";
+import runCpp from "./containers/runCppdocker";
 
 const app: Express = express();
 app.use(express.json());
@@ -35,23 +36,45 @@ app.listen(serverConfig.PORT, () => {
   //   runPython(code, input);
 
   // A simple Java class
-  const javaCode = `
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.IOException;
+  //   const javaCode = `
+  // import java.io.BufferedReader;
+  // import java.io.InputStreamReader;
+  // import java.io.IOException;
 
-public class Main {
-    public static void main(String[] args) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        String line = reader.readLine();
-        int number = Integer.parseInt(line);
-        System.out.println("Result: " + (number * 2));
+  // public class Main {
+  //     public static void main(String[] args) throws IOException {
+  //         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+  //         String line = reader.readLine();
+  //         int number = Integer.parseInt(line);
+  //         System.out.println("Result: " + (number * 2));
+  //     }
+  // }
+  // `;
+
+  //   const input = "12";
+
+  //   runJava(javaCode, input);
+
+  // A simple C++ program
+  const cppCode = `
+#include <iostream>
+#include <string>
+
+int main() {
+    std::string line;
+    std::getline(std::cin, line);
+    try {
+        int number = std::stoi(line);
+        std::cout << "Result: " << (number * 2) << std::endl;
+    } catch (const std::invalid_argument& e) {
+        std::cerr << "Invalid input: " << e.what() << std::endl;
     }
+    return 0;
 }
 `;
 
-  // Input for the Java program
-  const input = "12";
+  // Input for the C++ program
+  const input = "10";
 
-  runJava(javaCode, input);
+  runCpp(cppCode, input);
 });
