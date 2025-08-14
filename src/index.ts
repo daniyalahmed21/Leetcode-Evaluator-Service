@@ -4,6 +4,7 @@ import apiRouter from "./routes";
 // import sampleQueueProducer from "./producer/sampleQueueProducer";
 // import SampleWorker from "./workers/sampleWorker";
 import bullBoardRouter from "./BullBoard ui/bullBoard";
+import runPython from "./containers/runPythonDocker";
 
 const app: Express = express();
 app.use(express.json());
@@ -23,4 +24,9 @@ app.listen(serverConfig.PORT, () => {
   //   position: "SD1",
   //   location: "Remote",
   // });
+
+  // eslint-disable-next-line quotes
+  const code = `print("hello")`;
+
+  runPython(code);
 });

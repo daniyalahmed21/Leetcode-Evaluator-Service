@@ -9,6 +9,7 @@ const routes_1 = __importDefault(require("./routes"));
 // import sampleQueueProducer from "./producer/sampleQueueProducer";
 // import SampleWorker from "./workers/sampleWorker";
 const bullBoard_1 = __importDefault(require("./BullBoard ui/bullBoard"));
+const runPythonDocker_1 = __importDefault(require("./containers/runPythonDocker"));
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
@@ -24,4 +25,7 @@ app.listen(server_config_1.default.PORT, () => {
     //   position: "SD1",
     //   location: "Remote",
     // });
+    // eslint-disable-next-line quotes
+    const code = `print("hello")`;
+    (0, runPythonDocker_1.default)(code);
 });
