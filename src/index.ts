@@ -25,8 +25,11 @@ app.listen(serverConfig.PORT, () => {
   //   location: "Remote",
   // });
 
-  // eslint-disable-next-line quotes
-  const code = `print("hello")`;
+  const code = `
+x = 10
+print(x)
+`;
+  const input = "10";
 
-  runPython(code);
+  runPython(code, input);
 });

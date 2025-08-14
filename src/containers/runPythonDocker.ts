@@ -3,39 +3,42 @@ import createContainer from "./containerFactory";
 import { decodeDockerStream } from "./dockerHelper";
 
 const runPython = async (code: string, inputTestCase: string) => {
-  const rawLogBuffer: Buffer[] = [];
+  const rawLogChunks: Buffer[] = [];
+
+  const trimmedCode = code.trim();
 
   const pythonDockerContainer = await createContainer(PYTHON_IMAGE, [
     "python3",
     "-c",
-    code,
-    "stty -echo",
+    trimmedCode,
   ]);
+
+  const containerStream: NodeJS.ReadWriteStream =
+    await pythonDockerContainer.attach({
+      stream: true,
+      stdin: true,
+      stdout: true,
+      stderr: true,
+    });
+
+  containerStream.on("data", (chunk: Buffer) => {
+    rawLogChunks.push(chunk);
+  });
+
   await pythonDockerContainer.start();
 
-  const loggerStream = await pythonDockerContainer.logs({
-    stderr: true,
-    stdout: true,
-    follow: true,
-    timestamps: false,
-  });
+  containerStream.write(inputTestCase);
+  containerStream.end();
 
-  loggerStream.on("data", (chunk) => {
-    rawLogBuffer.push(chunk);
-  });
-  loggerStream.on("end", () => {
-    // Concatenate all chunks into a single Buffer.
-    const fullLogBuffer = Buffer.concat(rawLogBuffer);
+  await pythonDockerContainer.wait();
 
-    // Decode the complete buffer.
-    const decodedOutput = decodeDockerStream(fullLogBuffer);
+  const fullLogBuffer = Buffer.concat(rawLogChunks);
+  const decodedOutput = decodeDockerStream(fullLogBuffer);
 
-    console.log("--- Decoded Container Output ---");
-    console.log("Stdout:", decodedOutput.stdout);
-    console.log("Stderr:", decodedOutput.stderr);
-    console.log("---------------------------------");
-  });
- 
+  console.log("Stdout:", decodedOutput.stdout);
+  console.log("Stderr:", decodedOutput.stderr);
+
+  await pythonDockerContainer.remove();
 };
 
 export default runPython;

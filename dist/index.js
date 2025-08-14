@@ -25,7 +25,10 @@ app.listen(server_config_1.default.PORT, () => {
     //   position: "SD1",
     //   location: "Remote",
     // });
-    // eslint-disable-next-line quotes
-    const code = `print("hello")`;
-    (0, runPythonDocker_1.default)(code);
+    const code = `
+x = 10
+print(x)
+`;
+    const input = "10";
+    (0, runPythonDocker_1.default)(code, input);
 });
