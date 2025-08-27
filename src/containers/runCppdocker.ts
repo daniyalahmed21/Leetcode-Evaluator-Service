@@ -8,6 +8,7 @@ const runCpp = async (
   outputTestCase: string,
 ) => {
   const rawLogChunks: Buffer[] = [];
+  console.log(outputTestCase);
 
   // A shell command to create the file, compile it, and then run it with input
   // The C++ code and input are carefully escaped for the shell command

@@ -5,40 +5,36 @@ import { LanguageStrategyFactory } from "../startegies/LanguageStrategyFactory";
 
 export class SubmissionJob implements IJob {
   name: string;
-  payload?: Record<string, SubmissionPayload>;
+  payload?: SubmissionPayload;
 
-  constructor(payload: Record<string, SubmissionPayload>) {
+  constructor(payload: SubmissionPayload) {
     this.name = this.constructor.name;
     this.payload = payload;
   }
 
   handle = async (job?: Job): Promise<void> => {
-    if (!this.payload || Object.keys(this.payload).length === 0) {
+    if (!this.payload) {
       console.log("No payload received for job:", job?.id);
       return;
     }
 
     console.log("Processing job with ID:", job?.id);
 
-    for (const key in this.payload) {
-      const submission = this.payload[key];
-      if (submission) {
-        const { code, language, inputTestCase, outputTestCase } = submission;
+    const { code, language, inputTestCase, outputTestCase } = this.payload;
 
-        console.log(`Executing submission: ${key} (Language: ${language})`);
+    const strategy = LanguageStrategyFactory.getStrategy(language);
 
-        const strategy = LanguageStrategyFactory.getStrategy(language);
-
-        if (!strategy) {
-          console.log(`Unsupported language: ${language}`);
-          continue;
-        }
-
-        await strategy.execute(code, inputTestCase, outputTestCase);
-      }
+    if (!strategy) {
+      console.log(`Unsupported language: ${language}`);
+      return;
     }
 
-    console.log("Job finished.");
+    try {
+      await strategy.execute(code, inputTestCase, outputTestCase);
+      // ✅ No need to compare again here
+    } catch (err) {
+      console.error("Error executing submission:", err);
+    }
   };
 
   failed = (job?: Job): void => {

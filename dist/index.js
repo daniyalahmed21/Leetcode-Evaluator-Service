@@ -9,7 +9,7 @@ const routes_1 = __importDefault(require("./routes"));
 const bullBoard_1 = __importDefault(require("./BullBoard ui/bullBoard"));
 // import runCpp from "./containers/runCppDocker";
 const submissionWorker_1 = __importDefault(require("./workers/submissionWorker"));
-const submissionQueueProducer_1 = __importDefault(require("./producer/submissionQueueProducer"));
+// import submissionQueueProducer from "./producer/submissionQueueProducer";
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
@@ -19,35 +19,36 @@ app.listen(server_config_1.default.PORT, () => {
     console.log(`Server running at http://localhost:${server_config_1.default.PORT}`);
     console.log(`BullMQ Board UI is available at http://localhost:${server_config_1.default.PORT}/admin/queues`);
     (0, submissionWorker_1.default)("SubmissionQueue");
-    (0, submissionQueueProducer_1.default)({
-        cpp_submission_1: {
-            code: `
-  #include <iostream>
-  int main() {
-      std::cout << "Hello from C++";
-      return 0;
-  }
-      `,
-            language: "cpp",
-            inputCase: "1 2 3",
-        },
-        java_submission_2: {
-            code: `
-  public class Main {
-      public static void main(String[] args) {
-          System.out.println("Hello from Java");
-      }
-  }
-      `,
-            language: "java",
-            inputCase: "",
-        },
-        python_submission_3: {
-            code: `import sys
-for line in sys.stdin:
-  print(line.strip())`, // Ensure there is no whitespace before the 'import' line.
-            language: "python",
-            inputCase: "this is a test input",
-        },
-    });
+    //   submissionQueueProducer({
+    //     cpp_submission_1: {
+    //       code: `
+    //   #include <iostream>
+    //   int main() {
+    //       std::cout << "Hello from C++";
+    //       return 0;
+    //   }
+    //       `,
+    //       language: "cpp",
+    //       inputCase: "1 2 3",
+    //       outputTestCase
+    //     },
+    //     java_submission_2: {
+    //       code: `
+    //   public class Main {
+    //       public static void main(String[] args) {
+    //           System.out.println("Hello from Java");
+    //       }
+    //   }
+    //       `,
+    //       language: "java",
+    //       inputCase: "",
+    //     },
+    //     python_submission_3: {
+    //       code: `import sys
+    // for line in sys.stdin:
+    //   print(line.strip())`, // Ensure there is no whitespace before the 'import' line.
+    //       language: "python",
+    //       inputCase: "this is a test input",
+    //     },
+    // });
 });

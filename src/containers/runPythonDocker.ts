@@ -1,19 +1,23 @@
 import { PYTHON_IMAGE } from "../utils/constants";
+import { fetchDecodedStream } from "../utils/fetchDecodedStream";
 import createContainer from "./containerFactory";
-import { decodeDockerStream } from "./dockerHelper";
+
+interface ExecutionResult {
+  stdout: string;
+  stderr: string;
+}
 
 const runPython = async (
   code: string,
   inputTestCase: string,
-  outputTestCase: string,
-) => {
+): Promise<ExecutionResult> => {
   const rawLogChunks: Buffer[] = [];
 
-  // Use a single shell command to write the code and pipe the input
   const runCommand = `
     printf "%s" '${code.trim().replace(/'/g, "'\\''")}' > test.py &&
     printf "%s" '${inputTestCase.replace(/'/g, "'\\''")}' | python3 test.py
   `;
+
   const pythonDockerContainer = await createContainer(PYTHON_IMAGE, [
     "/bin/sh",
     "-c",
@@ -29,22 +33,20 @@ const runPython = async (
     timestamps: false,
   });
 
-  loggerStream.on("data", (chunk: Buffer) => {
-    rawLogChunks.push(chunk);
-  });
+  loggerStream.on("data", (chunk: Buffer) => rawLogChunks.push(chunk));
 
-  await new Promise<void>((res) => {
-    loggerStream.on("end", () => {
-      const fullLogBuffer = Buffer.concat(rawLogChunks);
-      const decodedOutput = decodeDockerStream(fullLogBuffer);
-
-      console.log("Stdout:", decodedOutput.stdout);
-      console.log("Stderr:", decodedOutput.stderr);
-      res();
-    });
-  });
-
-  await pythonDockerContainer.remove();
+  try {
+    const codeResponse: string = await fetchDecodedStream(
+      loggerStream,
+      rawLogChunks,
+    );
+    console.log("codeResponse", codeResponse);
+    return { stdout: codeResponse, stderr: "" };
+  } catch (error) {
+    return { stdout: "", stderr: error?.toString?.() || "Unknown error" };
+  } finally {
+    await pythonDockerContainer.remove();
+  }
 };
 
 export default runPython;

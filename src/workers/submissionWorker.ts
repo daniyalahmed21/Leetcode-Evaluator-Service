@@ -7,7 +7,7 @@ export default function SubmissionWorker(queueName: string) {
     queueName,
 
     async (job: Job) => {
-      if (job.name === "Submission Job") {
+      if (job.name === "process-submission") {
         const SubmissionJobInstance = new SubmissionJob(job.data);
         SubmissionJobInstance.handle(job);
         return true;
