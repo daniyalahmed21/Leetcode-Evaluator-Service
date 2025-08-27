@@ -2,7 +2,11 @@ import { PYTHON_IMAGE } from "../utils/constants";
 import createContainer from "./containerFactory";
 import { decodeDockerStream } from "./dockerHelper";
 
-const runPython = async (code: string, inputTestCase: string) => {
+const runPython = async (
+  code: string,
+  inputTestCase: string,
+  outputTestCase: string,
+) => {
   const rawLogChunks: Buffer[] = [];
 
   // Use a single shell command to write the code and pipe the input

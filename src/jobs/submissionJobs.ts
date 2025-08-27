@@ -23,7 +23,7 @@ export class SubmissionJob implements IJob {
     for (const key in this.payload) {
       const submission = this.payload[key];
       if (submission) {
-        const { code, language, inputCase } = submission;
+        const { code, language, inputTestCase, outputTestCase } = submission;
 
         console.log(`Executing submission: ${key} (Language: ${language})`);
 
@@ -34,7 +34,7 @@ export class SubmissionJob implements IJob {
           continue;
         }
 
-        await strategy.execute(code, inputCase);
+        await strategy.execute(code, inputTestCase, outputTestCase);
       }
     }
 

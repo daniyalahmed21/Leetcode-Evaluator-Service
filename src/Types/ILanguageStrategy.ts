@@ -1,3 +1,7 @@
 export interface ILanguageStrategy {
-  execute(code: string, input: string): Promise<void>;
+  execute(
+    code: string,
+    inputTestCase: string,
+    outputTestCase: string,
+  ): Promise<void>;
 }

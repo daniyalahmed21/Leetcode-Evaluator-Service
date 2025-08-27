@@ -2,13 +2,17 @@ import { decodeDockerStream } from "./dockerHelper";
 import createContainer from "./containerFactory";
 import { CPP_IMAGE } from "../utils/constants";
 
-const runCpp = async (cppCode: string, inputTestCase: string) => {
+const runCpp = async (
+  code: string,
+  inputTestCase: string,
+  outputTestCase: string,
+) => {
   const rawLogChunks: Buffer[] = [];
 
   // A shell command to create the file, compile it, and then run it with input
   // The C++ code and input are carefully escaped for the shell command
   const runCommand = `
-    printf "%s" '${cppCode.replace(/'/g, "'\\''")}' > main.cpp &&
+    printf "%s" '${code.replace(/'/g, "'\\''")}' > main.cpp &&
     g++ -o main main.cpp &&
     printf "%s" '${inputTestCase.replace(/'/g, "'\\''")}' | ./main
   `;

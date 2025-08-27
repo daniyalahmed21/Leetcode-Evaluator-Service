@@ -2,13 +2,17 @@ import { decodeDockerStream } from "./dockerHelper";
 import createContainer from "./containerFactory";
 import { JAVA_IMAGE } from "../utils/constants";
 
-const runJava = async (javaCode: string, inputTestCase: string) => {
+const runJava = async (
+  code: string,
+  inputTestCase: string,
+  outputTestCase: string,
+) => {
   const rawLogChunks: Buffer[] = [];
 
   // A shell command to create the file, compile it, and then run it with input
   // The Java code and input are carefully escaped for the shell command
   const runCommand = `
-    printf "%s" '${javaCode.replace(/'/g, "'\\''")}' > Main.java &&
+    printf "%s" '${code.replace(/'/g, "'\\''")}' > Main.java &&
     javac Main.java &&
     printf "%s" '${inputTestCase.replace(/'/g, "'\\''")}' | java Main
   `;
