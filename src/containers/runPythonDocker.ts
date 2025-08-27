@@ -1,15 +1,12 @@
+import { ExecutionResult } from "../Types/ExecutionResult";
 import { PYTHON_IMAGE } from "../utils/constants";
 import { fetchDecodedStream } from "../utils/fetchDecodedStream";
 import createContainer from "./containerFactory";
 
-interface ExecutionResult {
-  stdout: string;
-  stderr: string;
-}
-
 const runPython = async (
   code: string,
   inputTestCase: string,
+  outputTestCase: string,
 ): Promise<ExecutionResult> => {
   const rawLogChunks: Buffer[] = [];
 
@@ -40,10 +37,18 @@ const runPython = async (
       loggerStream,
       rawLogChunks,
     );
-    console.log("codeResponse", codeResponse);
-    return { stdout: codeResponse, stderr: "" };
+
+    if (codeResponse.trim() === outputTestCase.trim()) {
+      return { output: codeResponse, status: "SUCCESS" };
+    } else {
+      return { output: codeResponse, status: "WA" };
+    }
   } catch (error) {
-    return { stdout: "", stderr: error?.toString?.() || "Unknown error" };
+    console.log("Error occurred", error);
+    if (error === "TLE") {
+      await pythonDockerContainer.kill();
+    }
+    return { output: error as string, status: "ERROR" };
   } finally {
     await pythonDockerContainer.remove();
   }

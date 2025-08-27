@@ -3,5 +3,5 @@ export interface ILanguageStrategy {
     code: string,
     inputTestCase: string,
     outputTestCase: string,
-  ): Promise<void>;
+  ): Promise<object>;
 }

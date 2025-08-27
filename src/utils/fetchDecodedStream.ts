@@ -1,6 +1,5 @@
 import { decodeDockerStream } from "../containers/dockerHelper";
 
-// ✅ Helper function
 export const fetchDecodedStream = (
   loggerStream: NodeJS.ReadableStream,
   rawLogBuffer: Buffer[],

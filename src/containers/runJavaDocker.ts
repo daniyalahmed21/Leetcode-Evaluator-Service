@@ -1,14 +1,14 @@
-import { decodeDockerStream } from "./dockerHelper";
 import createContainer from "./containerFactory";
 import { JAVA_IMAGE } from "../utils/constants";
+import { fetchDecodedStream } from "../utils/fetchDecodedStream";
+import { ExecutionResult } from "../Types/ExecutionResult";
 
 const runJava = async (
   code: string,
   inputTestCase: string,
   outputTestCase: string,
-) => {
+): Promise<ExecutionResult> => {
   const rawLogChunks: Buffer[] = [];
-  console.log(outputTestCase);
 
   // A shell command to create the file, compile it, and then run it with input
   // The Java code and input are carefully escaped for the shell command
@@ -38,18 +38,26 @@ const runJava = async (
     rawLogChunks.push(chunk);
   });
 
-  await new Promise((res) => {
-    loggerStream.on("end", () => {
-      const fullLogBuffer = Buffer.concat(rawLogChunks);
-      const decodedOutput = decodeDockerStream(fullLogBuffer);
+  try {
+    const codeResponse: string = await fetchDecodedStream(
+      loggerStream,
+      rawLogChunks,
+    );
 
-      console.log("Stdout:", decodedOutput.stdout);
-      console.log("Stderr:", decodedOutput.stderr);
-      res(null);
-    });
-  });
-
-  await javaDockerContainer.remove();
+    if (codeResponse.trim() === outputTestCase.trim()) {
+      return { output: codeResponse, status: "SUCCESS" };
+    } else {
+      return { output: codeResponse, status: "WA" };
+    }
+  } catch (error) {
+    console.log("Error occurred", error);
+    if (error === "TLE") {
+      await javaDockerContainer.kill();
+    }
+    return { output: error as string, status: "ERROR" };
+  } finally {
+    await javaDockerContainer.remove();
+  }
 };
 
 export default runJava;
