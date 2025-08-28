@@ -2,8 +2,8 @@ import { Job } from "bullmq";
 import { IJob } from "../Types/bullMqTypeDefination";
 import { SubmissionPayload } from "../Types/submissionPayload";
 import { LanguageStrategyFactory } from "../startegies/LanguageStrategyFactory";
-
-type ExecutionResponse = { output: string; status: string };
+import evaluationQueueProducer from "../producer/evaluationQueueProducer";
+import { ExecutionResult, ExecutionStatus } from "../Types/ExecutionResult";
 
 export class SubmissionJob implements IJob {
   name: string;
@@ -32,19 +32,21 @@ export class SubmissionJob implements IJob {
     }
 
     try {
-      const response: ExecutionResponse = await strategy.execute(
+      const response: ExecutionResult = await strategy.execute(
         code,
         inputTestCase,
         outputTestCase,
       );
-      if (response.status === "SUCCESS") {
+      evaluationQueueProducer({ response });
+
+      if (response.status === ExecutionStatus.SUCCESS) {
         console.log("Code executed successfully");
-        console.log(response);
+      } else if (response.status === ExecutionStatus.WRONG_ANSWER) {
+        console.log("Code executed, but the output was a wrong answer.");
       } else {
         console.log("Something went wrong with code execution");
-        console.log(response);
       }
-      // ✅ No need to compare again here
+      console.log(response);
     } catch (err) {
       console.error("Error executing submission:", err);
     }
