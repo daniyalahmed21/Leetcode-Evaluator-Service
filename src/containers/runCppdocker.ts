@@ -1,7 +1,7 @@
 import createContainer from "./containerFactory";
-import { CPP_IMAGE } from "../utils/constants";
+import { CPP_IMAGE, CONTAINER_TIMEOUT_MS } from "../utils/constants";
 import { fetchDecodedStream } from "../utils/fetchDecodedStream";
-import { ExecutionResult } from "../Types/ExecutionResult";
+import { ExecutionResult, ExecutionStatus } from "../Types/ExecutionResult";
 
 const runCpp = async (
   code: string,
@@ -9,16 +9,20 @@ const runCpp = async (
   outputTestCase: string,
 ): Promise<ExecutionResult> => {
   const rawLogChunks: Buffer[] = [];
+  const timeout = CONTAINER_TIMEOUT_MS || 5000;
 
-  // A shell command to create the file, compile it, and then run it with input
-  // The C++ code and input are carefully escaped for the shell command
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => {
+      reject(new Error("TLE"));
+    }, timeout);
+  });
+
   const runCommand = `
     printf "%s" '${code.replace(/'/g, "'\\''")}' > main.cpp &&
     g++ -o main main.cpp &&
     printf "%s" '${inputTestCase.replace(/'/g, "'\\''")}' | ./main
   `;
 
-  // Create the container with the C++ image and the combined shell command
   const cppDockerContainer = await createContainer(CPP_IMAGE, [
     "/bin/sh",
     "-c",
@@ -39,22 +43,31 @@ const runCpp = async (
   });
 
   try {
-    const codeResponse: string = await fetchDecodedStream(
-      loggerStream,
-      rawLogChunks,
-    );
+    const codeResponse: string = await Promise.race([
+      fetchDecodedStream(loggerStream, rawLogChunks),
+      timeoutPromise,
+    ]);
 
     if (codeResponse.trim() === outputTestCase.trim()) {
-      return { output: codeResponse, status: "SUCCESS" };
+      return { output: codeResponse, status: ExecutionStatus.SUCCESS };
     } else {
-      return { output: codeResponse, status: "WA" };
+      return { output: codeResponse, status: ExecutionStatus.WRONG_ANSWER };
     }
   } catch (error) {
-    console.log("Error occurred", error);
-    if (error === "TLE") {
-      await cppDockerContainer.kill();
+    console.error("Error occurred:", error);
+    await cppDockerContainer.kill();
+
+    if (error instanceof Error && error.message === "TLE") {
+      return {
+        output: "Time Limit Exceeded",
+        status: ExecutionStatus.TIME_LIMIT_EXCEEDED,
+      };
     }
-    return { output: error as string, status: "ERROR" };
+
+    return {
+      output: (error as Error).message || String(error),
+      status: ExecutionStatus.RUNTIME_ERROR,
+    };
   } finally {
     await cppDockerContainer.remove();
   }

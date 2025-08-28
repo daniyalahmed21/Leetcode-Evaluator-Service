@@ -22,7 +22,14 @@ export class SubmissionJob implements IJob {
 
     console.log("Processing job with ID:", job?.id);
 
-    const { code, language, inputTestCase, outputTestCase } = this.payload;
+    const {
+      code,
+      language,
+      inputTestCase,
+      outputTestCase,
+      userId,
+      submissionId,
+    } = this.payload;
 
     const strategy = LanguageStrategyFactory.getStrategy(language);
 
@@ -37,7 +44,7 @@ export class SubmissionJob implements IJob {
         inputTestCase,
         outputTestCase,
       );
-      evaluationQueueProducer({ response });
+      evaluationQueueProducer({ response, userId, submissionId });
 
       if (response.status === ExecutionStatus.SUCCESS) {
         console.log("Code executed successfully");

@@ -8,6 +8,8 @@ export class PythonStrategy implements ILanguageStrategy {
     input: string,
     output: string,
   ): Promise<ExecutionResult> {
+    console.log("Code", code);
+
     return await runPython(code, input, output);
   }
 }

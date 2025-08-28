@@ -7,14 +7,14 @@ const api_1 = require("@bull-board/api");
 const bullMQAdapter_1 = require("@bull-board/api/bullMQAdapter");
 const express_1 = require("@bull-board/express");
 const submissionQueue_1 = __importDefault(require("../queues/submissionQueue"));
-// Create a new Express adapter instance
+const evaluationQueue_1 = __importDefault(require("../queues/evaluationQueue"));
 const serverAdapter = new express_1.ExpressAdapter();
-// Set the base path for the UI (e.g., /admin/queues)
-// FIX: The method name should be setBasePath()
 serverAdapter.setBasePath("/admin/queues");
-// Create the Bull Board with the Express adapter and your queues
 (0, api_1.createBullBoard)({
-    queues: [new bullMQAdapter_1.BullMQAdapter(submissionQueue_1.default)], // Add all your queues here
+    queues: [
+        new bullMQAdapter_1.BullMQAdapter(submissionQueue_1.default),
+        new bullMQAdapter_1.BullMQAdapter(evaluationQueue_1.default),
+    ],
     serverAdapter: serverAdapter,
 });
 exports.default = serverAdapter.getRouter();

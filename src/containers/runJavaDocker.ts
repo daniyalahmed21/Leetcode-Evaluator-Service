@@ -1,7 +1,7 @@
 import createContainer from "./containerFactory";
-import { JAVA_IMAGE } from "../utils/constants";
+import { JAVA_IMAGE, CONTAINER_TIMEOUT_MS } from "../utils/constants";
 import { fetchDecodedStream } from "../utils/fetchDecodedStream";
-import { ExecutionResult } from "../Types/ExecutionResult";
+import { ExecutionResult, ExecutionStatus } from "../Types/ExecutionResult";
 
 const runJava = async (
   code: string,
@@ -9,16 +9,20 @@ const runJava = async (
   outputTestCase: string,
 ): Promise<ExecutionResult> => {
   const rawLogChunks: Buffer[] = [];
+  const timeout = CONTAINER_TIMEOUT_MS || 5000;
 
-  // A shell command to create the file, compile it, and then run it with input
-  // The Java code and input are carefully escaped for the shell command
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => {
+      reject(new Error("TLE"));
+    }, timeout);
+  });
+
   const runCommand = `
     printf "%s" '${code.replace(/'/g, "'\\''")}' > Main.java &&
     javac Main.java &&
     printf "%s" '${inputTestCase.replace(/'/g, "'\\''")}' | java Main
   `;
 
-  // Create the container with the Java image and the combined shell command
   const javaDockerContainer = await createContainer(JAVA_IMAGE, [
     "/bin/sh",
     "-c",
@@ -39,22 +43,30 @@ const runJava = async (
   });
 
   try {
-    const codeResponse: string = await fetchDecodedStream(
-      loggerStream,
-      rawLogChunks,
-    );
+    const codeResponse: string = await Promise.race([
+      fetchDecodedStream(loggerStream, rawLogChunks),
+      timeoutPromise,
+    ]);
 
     if (codeResponse.trim() === outputTestCase.trim()) {
-      return { output: codeResponse, status: "SUCCESS" };
+      return { output: codeResponse, status: ExecutionStatus.SUCCESS };
     } else {
-      return { output: codeResponse, status: "WA" };
+      return { output: codeResponse, status: ExecutionStatus.WRONG_ANSWER };
     }
   } catch (error) {
-    console.log("Error occurred", error);
-    if (error === "TLE") {
-      await javaDockerContainer.kill();
+    await javaDockerContainer.kill();
+
+    if (error instanceof Error && error.message === "TLE") {
+      return {
+        output: "Time Limit Exceeded",
+        status: ExecutionStatus.TIME_LIMIT_EXCEEDED,
+      };
     }
-    return { output: error as string, status: "ERROR" };
+
+    return {
+      output: (error as Error).message || String(error),
+      status: ExecutionStatus.RUNTIME_ERROR,
+    };
   } finally {
     await javaDockerContainer.remove();
   }
